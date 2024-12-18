@@ -34,6 +34,7 @@ phases:
       # Run the Spring Boot application (JAR file) using Java
       - echo "Build completed successfully"
       - echo "Running Spring Boot application"
+      - ls
       - java -jar build/libs/transport-module-1.0.jar  # Adjust the path if necessary
 
 artifacts:
