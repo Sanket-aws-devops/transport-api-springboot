@@ -1,6 +1,6 @@
 #! /bin/bash
     sudo apt-get update -y
-    cd /home/ubuntu/micro-transport-module
+    cd /home/ubuntu/transport-api-springboot
     sudo apt-get install openjdk-11-jdk -y
     sudo apt install snapd -y
     sudo snap install gradle --classic
