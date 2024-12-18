@@ -12,9 +12,9 @@ phases:
       - echo "Installing Java and Gradle"
       - apt-get update
       - apt-get install -y openjdk-11-jdk
-      - java -version# Install OpenJDK 11, or use another version if needed
+      - java -version # Install OpenJDK 11, or use another version if needed
       - apt-get install -y gradle   
-      - gradle -version# Install Gradle (if not pre-installed)
+      - gradle -version # Install Gradle (if not pre-installed)
 
       # Load environment variables from the .env file (ensure the file exists)
       - echo "Loading environment variables from .env"
