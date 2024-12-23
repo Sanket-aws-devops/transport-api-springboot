@@ -30,8 +30,8 @@ phases:
       - echo "Build completed successfully"
       - echo "Running Spring Boot application"
       - ls
-      - java -jar build/libs/transport-module-1.0.jar
+      - mv build/libs/*.jar /tmp/output/
 
 artifacts:
   files:
-    - build/libs/*.jar
+    - /tmp/output/*.jar
