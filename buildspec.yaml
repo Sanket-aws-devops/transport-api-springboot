@@ -30,6 +30,7 @@ phases:
       - echo "Build completed successfully"
       - echo "moving jarfile to output"
       - ls
+      - mkdir -p /tmp/output/
       - mv build/libs/*.jar /tmp/output/
 
 artifacts:
