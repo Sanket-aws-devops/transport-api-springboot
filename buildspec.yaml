@@ -2,10 +2,11 @@ version: 0.2
 
 env:
   variables:
-    MYSQL_HOST: "10.0.132.61"
+    MYSQL_HOST: "52.91.215.182"
     MYSQL_PORT: "3306"
     MYSQL_DATABASE: "transport"
-    MYSQL_USERNAME: "root"
+    MYSQL_USERNAME: "admin"
+    MYSQL_PASSWORD: "admin@123"
 
 phases:
   pre_build:
