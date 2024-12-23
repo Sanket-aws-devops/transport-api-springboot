@@ -28,7 +28,7 @@ phases:
   post_build:
     commands:
       - echo "Build completed successfully"
-      - echo "Running Spring Boot application"
+      - echo "moving jarfile to output"
       - ls
       - mv build/libs/*.jar /tmp/output/
 
