@@ -1,42 +1,37 @@
 version: 0.2
 
 env:
-  # Optional: You can specify environment variables in CodeBuild, or you can load from the .env file.
   variables:
-    ENV_FILE_PATH: ".env"  # Path to the .env file in your repository
+    DB_HOST: "10.0.132.61"
+    DB_PORT: "3306"
+    DB_NAME: "transport"
+    DB_USER: "root"
+    DB_PASSWORD: "root"
 
 phases:
   pre_build:
     commands:
-      # Install necessary dependencies like Java and Gradle (if not already available)
       - echo "Installing Java and Gradle"
       - apt-get update
       - apt-get install -y openjdk-11-jdk
-      - java -version # Install OpenJDK 11, or use another version if needed
-      # Download and install Gradle 7.2
+      - java -version
       - wget https://services.gradle.org/distributions/gradle-7.2-bin.zip -P /tmp
       - unzip -d /opt/gradle /tmp/gradle-7.2-bin.zip
       - export PATH=$PATH:/opt/gradle/gradle-7.2/bin
       - gradle -version
 
-      # Load environment variables from the .env file (ensure the file exists)
-      - echo "Loading environment variables from .env"
-      - if [ -f $ENV_FILE_PATH ]; then export $(cat $ENV_FILE_PATH | xargs); else echo ".env file not found"; exit 1; fi
-
   build:
     commands:
-      # Build the Spring Boot application using Gradle
       - echo "Building Spring Boot application with Gradle"
-      - gradle build  # You can specify `gradle build` or other tasks
+      - gradle build
 
   post_build:
     commands:
-      # Run the Spring Boot application (JAR file) using Java
       - echo "Build completed successfully"
       - echo "Running Spring Boot application"
       - ls
-      - java -jar build/libs/transport-module-1.0.jar  # Adjust the path if necessary
+      - java -jar build/libs/transport-module-1.0.jar
 
 artifacts:
   files:
-    - build/libs/*.jar  # Ensure the generated JAR file is included as an artifact
+    - build/libs/*.jar
