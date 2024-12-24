@@ -30,9 +30,14 @@ phases:
       - echo "Build completed successfully"
       - echo "moving jarfile to output"
       - ls
-      - mkdir -p /tmp/output/
-      - mv build/libs/*.jar /tmp/output/
+        BUILD_VERSION=$(TZ=IST date +"%Y-%m-%d-%H-%M-%S")
+        mkdir transport
+        cp build/libs/*.jar ./transport/
+        cp appspec.yml startup.sh ./transport
+        zip -r "transport_${BUILD_VERSION}.zip" ./transport
+        aws s3 cp "transport_${BUILD_VERSION}.zip" s3://sanket-codebuild-poc/transport/
+        echo "Build version: $BUILD_VERSION"
 
-artifacts:
-  files:
-    - /tmp/output/*.jar
+cache:
+  paths:
+    - ~/.m2/repository
