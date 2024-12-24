@@ -36,7 +36,7 @@ phases:
       - cp appspec.yml startup.sh ./transport
       - zip -r "transport_${BUILD_VERSION}.zip" ./transport
       - aws s3 cp "transport_${BUILD_VERSION}.zip" s3://sanket-codebuild-poc/transport/
-      - echo "Build version: $BUILD_VERSION"
+     
 
 cache:
   paths:
