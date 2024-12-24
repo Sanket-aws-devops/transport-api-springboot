@@ -2,7 +2,7 @@ version: 0.0
 os: linux
 files:
   - source: /transport-module-1.0.jar
-    destination: /
+    destination: /home/ubuntu
 file_exists_behavior: OVERWRITE
 hooks:
   BeforeInstall:
