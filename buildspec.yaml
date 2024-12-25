@@ -2,11 +2,11 @@ version: 0.2
 
 env:
   variables:
-    MYSQL_HOST: "database-1.c1nqtylunte8.us-east-1.rds.amazonaws.com"
+    MYSQL_HOST: "transport-db.c1nqtylunte8.us-east-1.rds.amazonaws.com"
     MYSQL_PORT: "3306"
     MYSQL_DATABASE: "transport"
     MYSQL_USERNAME: "admin"
-    MYSQL_PASSWORD: "xftWOmBeNsB40l6bVCon"
+    MYSQL_PASSWORD: "YmUQozwM695D7IhRmnyg"
 
 phases:
   pre_build:
