@@ -8,4 +8,5 @@
     #cd /build/libs/transport-module-1.0.jar
     #nohup java -jar /build/libs/transport-module-1.0.jar > /tmp/app.log 2>&1 &
 cd /home/ubuntu
+sudo chmod +x transport-module-1.0.jar
 nohup java -jar transport-module-1.0.jar > app.log 2>&1 &
