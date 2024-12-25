@@ -1,12 +1,10 @@
 version: 0.2
 
-env:
-  variables:
-    MYSQL_HOST: "44.222.201.213"
-    MYSQL_PORT: "3306"
-    MYSQL_DATABASE: "transport"
-    MYSQL_USERNAME: "admin"
-    MYSQL_PASSWORD: "admin@123"
+#env:
+##   MYSQL_HOST: "44.222.201.213"
+ ##   MYSQL_DATABASE: "transport"
+   # MYSQL_USERNAME: "admin"
+   # MYSQL_PASSWORD: "admin@123"
 
 phases:
   pre_build:
