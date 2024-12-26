@@ -1,4 +1,4 @@
-##! /bin/bash
+#! /bin/bash
     #sudo apt-get update -y
     #c#d /home/ubuntu/transport-api-springboot
     #sudo apt-get install openjdk-11-jdk -y
@@ -12,10 +12,6 @@
 #nohup java -jar transport-module-1.0.jar > app.log 2>&1 &
 
 
-
-
-
-#!/bin/bash
 # Enable error handling and debugging
 set -e
 set -x
