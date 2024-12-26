@@ -12,10 +12,10 @@
 #nohup java -jar transport-module-1.0.jar > app.log 2>&1 &
 
 
-#!/bin/bash
+
 
 # Variables
-#!/bin/bash
+
 
 # Variables
 S3_BUCKET="s3://sanket-codebuild-poc/transport"  # S3 bucket where the files are stored
