@@ -17,9 +17,25 @@
 # Variables
 
 if ! command -v aws &> /dev/null; then
-    echo "AWS CLI not found. Installing AWS CLI..."
+    echo "AWS CLI not found. Installing AWS CLI v2..."
+
+    # Update apt repository
     apt-get update -y
-    apt-get install -y awscli
+
+    # Install prerequisites
+    apt-get install -y unzip curl
+
+    # Download AWS CLI v2 package
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+
+    # Unzip the AWS CLI package
+    unzip awscliv2.zip
+
+    # Run the installation script
+    sudo ./aws/install
+
+    # Verify installation
+    aws --version
 fi
 # Variables
 S3_BUCKET="s3://sanket-codebuild-poc/transport"  # S3 bucket where the files are stored
