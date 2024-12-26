@@ -47,7 +47,7 @@ JAR_FILE=$(find $DEST_DIR -name "*.jar" | head -n 1)  # Assuming there's only on
 # Step 4: Run the .jar file
 if [ -f "$JAR_FILE" ]; then
   echo "Running the Spring Boot application..."
-  java -jar $JAR_FILE
+  nohup java -jar $JAR_FILE > app.log 2>&1 &
 else
   echo "No .jar file found inside $LATEST_ZIP!"
   exit 1
