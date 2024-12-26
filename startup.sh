@@ -1,4 +1,4 @@
-#! /bin/bash
+##! /bin/bash
     #sudo apt-get update -y
     #c#d /home/ubuntu/transport-api-springboot
     #sudo apt-get install openjdk-11-jdk -y
@@ -17,59 +17,44 @@
 
 #!/bin/bash
 
-# Redirect output to a log file
-exec > /var/log/startup.log 2>&1
+# Environment variables - modify these as needed
+APP_NAME=" transport-api"
+S3_BUCKET="sanket-codebuild-poc"
+DEPLOY_DIR="/home/ubuntu/transport/"
+JAR_NAME="transport-modulke-1.0.jar"
+LOG_FILE="/var/log/${APP_NAME}.log"
 
-echo "Starting startup.sh"
+# Create application directory if it doesn't exist
+mkdir -p ${DEPLOY_DIR}
+cd ${DEPLOY_DIR}
 
-# Ensure the transport directory exists
-echo "Ensuring /home/ubuntu/transport directory exists..."
-mkdir -p /home/ubuntu/transport
+# Stop the existing application if it's running
+if pgrep -f ${JAR_NAME} > /dev/null; then
+    echo "Stopping existing application..."
+    pkill -f ${JAR_NAME}
+    sleep 10
+fi
 
-# Install AWS CLI if not already installed
-if ! command -v aws &> /dev/null; then
-    echo "AWS CLI not found. Installing..."
-    apt-get update -y && apt-get install -y awscli # For Ubuntu/Debian
-    # yum install -y aws-cli  # Uncomment for Amazon Linux
+# Clean up old deployment
+rm -rf ${DEPLOY_DIR}/*
+
+# Get the latest deployment package from S3
+# Note: AWS CodeDeploy will handle the S3 download, so we just need to handle the extracted files
+echo "Setting up new deployment..."
+
+# Ensure correct permissions
+chmod +x ${DEPLOY_DIR}/${JAR_NAME}
+
+# Start the application
+echo "Starting application..."
+nohup java -jar ${DEPLOY_DIR}/${JAR_NAME} > ${LOG_FILE} 2>&1 &
+
+# Check if application started successfully
+sleep 10
+if pgrep -f ${JAR_NAME} > /dev/null; then
+    echo "Application started successfully"
+    exit 0
 else
-    echo "AWS CLI is already installed."
-fi
-
-# Fetch the latest transport zip file from S3
-echo "Fetching the latest transport zip file from S3..."
-BUCKET_NAME="sanket-codebuild-poc"  # Replace with your actual bucket name
-LATEST_FILE=$(aws s3 ls s3://$BUCKET_NAME/transport/ | sort | tail -n 1 | awk '{print $4}')
-
-if [ -z "$LATEST_FILE" ]; then
-    echo "No files found in S3 bucket."
+    echo "Failed to start application"
     exit 1
 fi
-
-echo "Latest zip file found: $LATEST_FILE"
-
-# Copying file from S3 to local directory
-echo "Copying file from S3: s3://$BUCKET_NAME/$LATEST_FILE to /home/ubuntu/transport/latest.zip"
-aws s3 cp s3://$BUCKET_NAME/$LATEST_FILE /home/ubuntu/transport/latest.zip
-
-if [ $? -ne 0 ]; then
-    echo "File download failed!"
-    exit 1
-fi
-
-# Unzipping the latest transport package
-echo "Unzipping the latest transport package..."
-unzip /home/ubuntu/transport/latest.zip -d /home/ubuntu/transport/
-
-if [ $? -ne 0 ]; then
-    echo "Unzipping failed!"
-    exit 1
-fi
-
-# Check for .jar files in the transport directory
-if ls /home/ubuntu/transport/*.jar 1> /dev/null 2>&1; then
-    echo ".jar files found in /home/ubuntu/transport."
-else
-    echo "No .jar file found in /home/ubuntu/transport!"
-fi
-
-echo "Startup script completed."
