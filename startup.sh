@@ -33,18 +33,26 @@ echo "Latest zip file found: $LATEST_ZIP_FILE"
 # If the file exists, download it to a consistent location
 if [ -n "$LATEST_ZIP_FILE" ]; then
     echo "Copying file from S3: s3://$LATEST_ZIP_FILE to /home/ubuntu/transport/latest.zip"
-    sudo aws s3 cp s3://$LATEST_ZIP_FILE /home/ubuntu/transport/latest.zip
+    aws s3 cp s3://$LATEST_ZIP_FILE /home/ubuntu/transport/latest.zip
 else
     echo "No zip file found in S3!"
     exit 1
 fi
 
+# Check if file is downloaded
+if [ -f /home/ubuntu/transport/latest.zip ]; then
+    echo "File downloaded successfully."
+else
+    echo "File download failed!"
+    exit 1
+fi
+
 # Unzip the latest transport package
 echo "Unzipping the latest transport package..."
-sudo unzip /home/ubuntu/transport/latest.zip -d /home/ubuntu/transport/
+unzip /home/ubuntu/transport/latest.zip -d /home/ubuntu/transport/
 
 # Check for the .jar file in the directory
-JAR_FILE=$(find /home/ubuntu/transport/ -name "*.jar" -type f)
+JAR_FILE=$(find /home/ubuntu/transport/ -type f -name "*.jar" -print -quit)
 if [ -n "$JAR_FILE" ]; then
     echo "Found JAR file: $JAR_FILE"
 else
@@ -57,4 +65,5 @@ echo "Running the Spring Boot application..."
 nohup java -jar $JAR_FILE > /home/ubuntu/transport/app.log 2>&1 &
 
 echo "Spring Boot application started in the background."
+
 
