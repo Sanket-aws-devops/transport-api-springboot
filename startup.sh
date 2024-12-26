@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
     #sudo apt-get update -y
     #c#d /home/ubuntu/transport-api-springboot
     #sudo apt-get install openjdk-11-jdk -y
@@ -17,6 +17,7 @@
 # Define the S3 bucket and folder
 S3_BUCKET="s3://sanket-codebuild-poc/transport"
 DEST_DIR="/home/ubuntu/transport"
+aws sts get-caller-identity
 
 # Ensure the transport directory exists
 echo "Ensuring $DEST_DIR directory exists..."
