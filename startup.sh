@@ -12,94 +12,54 @@
 #nohup java -jar transport-module-1.0.jar > app.log 2>&1 &
 
 
-# Enable error handling and debugging
-set -e
-set -x
 
-# Environment variables - modify these as needed
-APP_NAME=" transport-api"
-S3_BUCKET="sanket-codebuild-poc"
-DEPLOY_DIR="/home/ubuntu/transport/"
-JAR_NAME="transport-module-1.0.jar"
-LOG_FILE="/var/log/${APP_NAME}.log"
-S3_FOLDER="transport"
 
-# Function for logging
-log() {
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" | tee -a /var/log/deploy.log
-}
+# Define the S3 bucket and folder
+S3_BUCKET="s3://sanket-codebuild-poc/transport"
+DEST_DIR="/home/ubuntu/transport"
 
-# Check if required commands are available
-command -v aws >/dev/null 2>&1 || { log "AWS CLI is required but not installed. Aborting."; exit 1; }
-command -v unzip >/dev/null 2>&1 || { log "unzip is required but not installed. Aborting."; exit 1; }
-command -v java >/dev/null 2>&1 || { log "Java is required but not installed. Aborting."; exit 1; }
+# Ensure the transport directory exists
+echo "Ensuring $DEST_DIR directory exists..."
+mkdir -p $DEST_DIR
 
-# Create application directory if it doesn't exist
-log "Creating deployment directory..."
-mkdir -p ${DEPLOY_DIR} || { log "Failed to create directory ${DEPLOY_DIR}"; exit 1; }
-cd ${DEPLOY_DIR} || { log "Failed to change to directory ${DEPLOY_DIR}"; exit 1; }
+# Fetch the latest transport zip file from S3
+echo "Fetching the latest transport zip file from S3..."
+LATEST_ZIP_FILE=$(aws s3 ls $S3_BUCKET/ --recursive | grep '.zip' | sort -t- -k2,3 -k4,5 -k6,7 | tail -n 1 | awk '{print $4}')
+echo "Latest zip file found: $LATEST_ZIP_FILE"
 
-# Stop the existing application if it's running
-if pgrep -f ${JAR_NAME}; then
-    log "Stopping existing application: ${APP_NAME}"
-    pkill -f ${JAR_NAME} || true
-    sleep 10
-fi
-
-# Clean up old deployment
-log "Cleaning up old deployment..."
-rm -rf ${DEPLOY_DIR}/* || { log "Failed to clean up old deployment"; exit 1; }
-
-# Install required packages if missing
-if ! command -v aws &> /dev/null; then
-    log "Installing AWS CLI..."
-    apt-get update
-    apt-get install -y awscli
-fi
-
-if ! command -v unzip &> /dev/null; then
-    log "Installing unzip..."
-    apt-get update
-    apt-get install -y unzip
-fi
-
-# Get the latest zip file from S3
-log "Finding latest deployment package..."
-LATEST_ZIP=$(aws s3api list-objects-v2 \
-    --bucket ${S3_BUCKET} \
-    --prefix "${S3_FOLDER}/" \
-    --query 'sort_by(Contents[?contains(Key, `.zip`)], &LastModified)[-1].Key' \
-    --output text) || { log "Failed to list S3 objects"; exit 1; }
-
-if [ -z "${LATEST_ZIP}" ] || [ "${LATEST_ZIP}" = "None" ]; then
-    log "No zip file found in S3"
-    exit 1
-fi
-
-log "Downloading latest package: ${LATEST_ZIP}"
-aws s3 cp "s3://${S3_BUCKET}/${LATEST_ZIP}" "${DEPLOY_DIR}/latest.zip" || { log "Failed to download from S3"; exit 1; }
-
-# Unzip the deployment package
-log "Extracting package..."
-unzip -q "${DEPLOY_DIR}/latest.zip" -d "${DEPLOY_DIR}" || { log "Failed to extract zip file"; exit 1; }
-rm "${DEPLOY_DIR}/latest.zip" || { log "Failed to remove zip file"; exit 1; }
-
-# Ensure correct permissions
-log "Setting permissions..."
-chmod +x "${DEPLOY_DIR}/${JAR_NAME}" || { log "Failed to set execute permission"; exit 1; }
-chown -R ubuntu:ubuntu "${DEPLOY_DIR}" || { log "Failed to change ownership"; exit 1; }
-
-# Start the application
-log "Starting ${APP_NAME}..."
-sudo -u ubuntu bash -c "cd ${DEPLOY_DIR} && nohup java -jar ${JAR_NAME} > ${LOG_FILE} 2>&1 &" || { log "Failed to start application"; exit 1; }
-
-# Check if application started successfully
-log "Checking application status..."
-sleep 10
-if pgrep -f ${JAR_NAME}; then
-    log "${APP_NAME} started successfully"
-    exit 0
+# If the file exists, download it to a consistent location
+if [ -n "$LATEST_ZIP_FILE" ]; then
+    echo "Copying file from S3: s3://$LATEST_ZIP_FILE to $DEST_DIR/latest.zip"
+    aws s3 cp s3://$LATEST_ZIP_FILE $DEST_DIR/latest.zip
 else
-    log "Failed to start ${APP_NAME}"
+    echo "No zip file found in S3!"
     exit 1
 fi
+
+# Check if the .zip file has been downloaded
+if [ -f "$DEST_DIR/latest.zip" ]; then
+    echo "File downloaded successfully."
+else
+    echo "File download failed!"
+    exit 1
+fi
+
+# Unzip the latest transport package
+echo "Unzipping the latest transport package..."
+unzip -o $DEST_DIR/latest.zip -d $DEST_DIR/
+
+# Check for the .jar file in the directory
+JAR_FILE=$(find $DEST_DIR/ -name "*.jar" -type f -print -quit)
+if [ -n "$JAR_FILE" ]; then
+    echo "Found JAR file: $JAR_FILE"
+else
+    echo "No .jar file found in $DEST_DIR!"
+    exit 1
+fi
+
+# Run the Spring Boot application in the background
+echo "Running the Spring Boot application..."
+nohup java -jar $JAR_FILE > $DEST_DIR/app.log 2>&1 &
+
+echo "Spring Boot application started in the background."
+
