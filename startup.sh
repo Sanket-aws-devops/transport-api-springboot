@@ -16,59 +16,45 @@
 
 # Variables
 
-if ! command -v aws &> /dev/null; then
-    echo "AWS CLI not found. Installing AWS CLI v2..."
+#!/bin/bash
 
-    # Update apt repository
-    apt-get update -y
+# Define the S3 bucket
+S3_BUCKET="s3://sanket-codebuild-poc/transport"
 
-    # Install prerequisites
-    apt-get install -y unzip curl
+# Ensure the transport directory exists
+echo "Ensuring /home/ubuntu/transport directory exists..."
+mkdir -p /home/ubuntu/transport
 
-    # Download AWS CLI v2 package
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-
-    # Unzip the AWS CLI package
-    unzip awscliv2.zip
-
-    # Run the installation script
-    sudo ./aws/install
-
-    # Verify installation
-    aws --version
-fi
-# Variables
-S3_BUCKET="s3://sanket-codebuild-poc/transport"  # S3 bucket where the files are stored
-DEST_DIR="/home/ubuntu/transport"               # Local directory to unzip
-LATEST_ZIP="$DEST_DIR/latest.zip"              # Local path for the latest zip file
-
-# Step 1: Fetch the latest zip file from S3 based on timestamp in the filename
+# Fetch the latest transport zip file from S3
 echo "Fetching the latest transport zip file from S3..."
-
-# List all the zip files in the S3 bucket, sort by date, and get the latest one
 LATEST_ZIP_FILE=$(aws s3 ls $S3_BUCKET/ --recursive | grep '.zip' | sort -t- -k2,3 -k4,5 -k6,7 | tail -n 1 | awk '{print $4}')
+echo "Latest zip file found: $LATEST_ZIP_FILE"
 
 # If the file exists, download it to a consistent location
 if [ -n "$LATEST_ZIP_FILE" ]; then
-  echo "Latest zip file found: $LATEST_ZIP_FILE"
-  aws s3 cp s3://$LATEST_ZIP_FILE $LATEST_ZIP
+    echo "Copying file from S3: s3://$LATEST_ZIP_FILE to /home/ubuntu/transport/latest.zip"
+    aws s3 cp s3://$LATEST_ZIP_FILE /home/ubuntu/transport/latest.zip
 else
-  echo "No zip file found in $S3_BUCKET!"
-  exit 1
+    echo "No zip file found in S3!"
+    exit 1
 fi
 
-# Step 2: Unzip the latest zip file
+# Unzip the latest transport package
 echo "Unzipping the latest transport package..."
-unzip -o $LATEST_ZIP -d $DEST_DIR
+unzip /home/ubuntu/transport/latest.zip -d /home/ubuntu/transport/
 
-# Step 3: Find the .jar file inside the unzipped directory
-JAR_FILE=$(find $DEST_DIR -name "*.jar" | head -n 1)  # Assuming there's only one .jar file
-
-# Step 4: Run the .jar file
-if [ -f "$JAR_FILE" ]; then
-  echo "Running the Spring Boot application..."
-  nohup java -jar $JAR_FILE > app.log 2>&1 &
+# Check for the .jar file in the directory
+JAR_FILE=$(find /home/ubuntu/transport/ -name "*.jar" -type f)
+if [ -n "$JAR_FILE" ]; then
+    echo "Found JAR file: $JAR_FILE"
 else
-  echo "No .jar file found inside $LATEST_ZIP!"
-  exit 1
+    echo "No .jar file found in /home/ubuntu/transport!"
+    exit 1
 fi
+
+# Run the Spring Boot application in the background
+echo "Running the Spring Boot application..."
+nohup java -jar $JAR_FILE > /home/ubuntu/transport/app.log 2>&1 &
+
+echo "Spring Boot application started in the background."
+
