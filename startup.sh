@@ -21,8 +21,9 @@
 APP_NAME=" transport-api"
 S3_BUCKET="sanket-codebuild-poc"
 DEPLOY_DIR="/home/ubuntu/transport/"
-JAR_NAME="transport-modulke-1.0.jar"
+JAR_NAME="transport-module-1.0.jar"
 LOG_FILE="/var/log/${APP_NAME}.log"
+S3_FOLDER="transport"
 
 # Create application directory if it doesn't exist
 mkdir -p ${DEPLOY_DIR}
