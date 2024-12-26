@@ -16,7 +16,11 @@
 
 # Variables
 
-
+if ! command -v aws &> /dev/null; then
+    echo "AWS CLI not found. Installing AWS CLI..."
+    apt-get update -y
+    apt-get install -y awscli
+fi
 # Variables
 S3_BUCKET="s3://sanket-codebuild-poc/transport"  # S3 bucket where the files are stored
 DEST_DIR="/home/ubuntu/transport"               # Local directory to unzip
