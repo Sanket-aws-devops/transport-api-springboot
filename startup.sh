@@ -15,6 +15,8 @@
 
 
 
+#!/bin/bash
+
 # Redirect output to a log file
 exec > /var/log/startup.log 2>&1
 
@@ -27,7 +29,7 @@ mkdir -p /home/ubuntu/transport
 # Install AWS CLI if not already installed
 if ! command -v aws &> /dev/null; then
     echo "AWS CLI not found. Installing..."
-    apt-get update -y && apt-get install -y awscli  # For Ubuntu/Debian
+    apt-get update -y && apt-get install -y awscli # For Ubuntu/Debian
     # yum install -y aws-cli  # Uncomment for Amazon Linux
 else
     echo "AWS CLI is already installed."
