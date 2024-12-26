@@ -1,9 +1,31 @@
+#version: 0.0
+#os: linux
+#files:
+#  - source: /transport/*.zip
+#    destination: /home/ubuntu/transport/
+#file_exists_behavior: OVERWRITE
+#hooks:
+#  BeforeInstall:
+#    - location: startup.sh
+ #     timeout: 300
+ #     runas: root
+
+
 version: 0.0
 os: linux
 files:
   - source: /transport/*.zip
-    destination: /home/ubuntu/transport/
-file_exists_behavior: OVERWRITE
+    destination: /home/ubuntu/transport
+permissions:
+  - object: /home/ubuntu/transport
+    pattern: "**"
+    owner: ubuntu
+    group: ubuntu
+    mode: 755
+  - object: /home/ubuntu/transport/startup.sh
+    owner: root
+    group: root
+    mode: 755
 hooks:
   BeforeInstall:
     - location: startup.sh
