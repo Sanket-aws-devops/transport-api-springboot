@@ -7,7 +7,7 @@ on:
 jobs:
   build-deploy:
     runs-on: self-hosted
-    environment: Dev
+    environment: dev
 
     env:
       SERVER_PORT: ${{ secrets.SERVER_PORT }}
@@ -16,53 +16,60 @@ jobs:
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     steps:
-    - name: 📦 Checkout Code
-      uses: actions/checkout@v3
+      - name: 📦 Checkout Repository
+        uses: actions/checkout@v3
 
-    - name: 🔐 Make Gradle Wrapper Executable
-      run: chmod +x ./gradlew
+      - name: ✅ Make gradlew Executable
+        run: chmod +x ./gradlew
 
-    - name: 🛠️ Build Application
-      run: ./gradlew clean build
+      - name: 🛠️ Build JAR with Gradle
+        run: ./gradlew clean build
 
-    - name: 📂 Show Build Outputs
-      run: ls -lh build/libs/
+      - name: 📄 Display Built JAR Files
+        run: ls -lh build/libs
 
-    - name: 📁 Ensure Deployment Directory Exists
-      run: |
-        sudo mkdir -p /opt/transport-api
-        sudo chown -R ubuntu:ubuntu /opt/transport-api
+      - name: 📁 Create Deployment Directory
+        run: |
+          sudo mkdir -p /opt/transport-api
+          sudo chown -R $USER:$USER /opt/transport-api
 
-    - name: 🚚 Deploy JAR to Server Directory
-      run: |
-        JAR_FILE=$(ls build/libs/*.jar | head -n 1)
-        echo "Deploying $JAR_FILE to /opt/transport-api/transport-api.jar"
-        sudo cp "$JAR_FILE" /opt/transport-api/transport-api.jar
-        sudo chown ubuntu:ubuntu /opt/transport-api/transport-api.jar
+      - name: 🚚 Copy JAR to Deployment Directory
+        run: |
+          JAR_FILE=$(ls build/libs/*.jar | head -n 1)
+          echo "Deploying $JAR_FILE to /opt/transport-api/transport-api.jar"
+          cp "$JAR_FILE" /opt/transport-api/transport-api.jar
 
-    - name: 🚀 Start Application in Background
-      run: |
-        echo "Starting application with the following config:"
-        echo "PORT: $SERVER_PORT"
-        echo "DB_URL: $DB_URL"
-        echo "USERNAME: $DB_USERNAME"
+      - name: 🚀 Start Spring Boot API in Background
+        run: |
+          echo "Starting Spring Boot application with the following config:"
+          echo "PORT: $SERVER_PORT"
+          echo "DB_URL: $DB_URL"
+          echo "USERNAME: $DB_USERNAME"
 
-        JAR_PATH=/opt/transport-api/transport-api.jar
-        LOG_FILE=/opt/transport-api/app.log
+          JAR_PATH="/opt/transport-api/transport-api.jar"
+          LOG_FILE="/opt/transport-api/app.log"
 
-        # Kill existing process running the same JAR (optional cleanup)
-        EXISTING_PID=$(pgrep -f "$JAR_PATH")
-        if [ ! -z "$EXISTING_PID" ]; then
-          echo "Stopping existing process: $EXISTING_PID"
-          sudo kill -9 $EXISTING_PID
-        fi
+          # 🔎 Check if JAR exists
+          if [ ! -f "$JAR_PATH" ]; then
+            echo "❌ JAR file not found: $JAR_PATH"
+            exit 1
+          fi
 
-        echo "Starting new process..."
-        nohup java \
-          -Dserver.port=$SERVER_PORT \
-          -Dspring.datasource.url=$DB_URL \
-          -Dspring.datasource.username=$DB_USERNAME \
-          -Dspring.datasource.password=$DB_PASSWORD \
-          -jar $JAR_PATH | sudo tee $LOG_FILE > /dev/null 2>&1 &
+          # 🛑 Kill previously running instance (if any)
+          EXISTING_PID=$(pgrep -f "$JAR_PATH" || true)
+          if [ -n "$EXISTING_PID" ]; then
+            echo "⚠️ Found existing process (PID: $EXISTING_PID). Killing..."
+            sudo kill -9 $EXISTING_PID || true
+          fi
 
-        echo "✅ App started. Check logs: sudo tail -f $LOG_FILE"
+          # 🟢 Start application via nohup
+          echo "▶️ Launching application..."
+          nohup java \
+            -Dserver.port=$SERVER_PORT \
+            -Dspring.datasource.url="$DB_URL" \
+            -Dspring.datasource.username="$DB_USERNAME" \
+            -Dspring.datasource.password="$DB_PASSWORD" \
+            -jar "$JAR_PATH" > "$LOG_FILE" 2>&1 &
+
+          echo "✅ Application started. To tail logs, SSH into EC2 and run:"
+          echo "sudo tail -f $LOG_FILE"
