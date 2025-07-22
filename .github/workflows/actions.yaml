@@ -7,37 +7,38 @@ on:
 jobs:
   build-deploy:
     runs-on: self-hosted
-    environment: dev   # 👈 Environment-scoped secrets used here
+    environment: dev  
 
     env:
       SERVER_PORT: ${{ secrets.SERVER_PORT }}
-      DB_NAME: ${{ secrets.DB_NAME }}
+      DB_URL: ${{ secrets.DB_URL }}               
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     steps:
-      - name: 📦 Checkout code
+      - name:  Checkout code
         uses: actions/checkout@v3
 
-      - name: 🛠️ Build API with Gradle
+      - name: 🛠 Build API with Gradle
         run: ./gradlew clean build
 
-      - name: 🚀 Deploy and Start API
+      - name:  Deploy and Run API
         run: |
-          echo "Copying JAR..."
+          echo "Copying JAR to target directory..."
           cp build/libs/*.jar /opt/transport-api/transport-api.jar
 
-          echo "Exporting DB environment variables..."
+          echo "Exporting environment variables..."
           export SERVER_PORT=$SERVER_PORT
-          export DB_NAME=$DB_NAME
+          export DB_URL=$DB_URL
           export DB_USERNAME=$DB_USERNAME
           export DB_PASSWORD=$DB_PASSWORD
 
-          echo "Running API in background..."
-          nohup java -Dserver.port=$SERVER_PORT \
-                     -Dspring.datasource.url=jdbc:mysql://<your-db-host>:3306/$DB_NAME \
-                     -Dspring.datasource.username=$DB_USERNAME \
-                     -Dspring.datasource.password=$DB_PASSWORD \
-                     -jar /opt/transport-api/transport-api.jar > api.log 2>&1 &
+          echo "Starting API with environment-specific configs..."
+          nohup java \
+            -Dserver.port=$SERVER_PORT \
+            -Dspring.datasource.url=$DB_URL \
+            -Dspring.datasource.username=$DB_USERNAME \
+            -Dspring.datasource.password=$DB_PASSWORD \
+            -jar /opt/transport-api/transport-api.jar > /opt/transport-api/api.log 2>&1 &
 
-          echo "API started. PID: $(pgrep -f transport-api.jar)"
+          echo " API started in the background"
