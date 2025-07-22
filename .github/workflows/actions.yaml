@@ -1,4 +1,4 @@
-name: Java with Gradle 
+name: Deploy Java API to EC2 (Dev)
 
 on:
   push:
@@ -7,28 +7,37 @@ on:
 jobs:
   build-deploy:
     runs-on: self-hosted
+    environment: dev   # 👈 Environment-scoped secrets used here
 
     env:
+      SERVER_PORT: ${{ secrets.SERVER_PORT }}
       DB_NAME: ${{ secrets.DB_NAME }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     steps:
-      - name: Checkout code
+      - name: 📦 Checkout code
         uses: actions/checkout@v3
 
-      - name: Build API
+      - name: 🛠️ Build API with Gradle
         run: ./gradlew clean build
 
-      - name: Deploy and run API
+      - name: 🚀 Deploy and Start API
         run: |
+          echo "Copying JAR..."
           cp build/libs/*.jar /opt/transport-api/transport-api.jar
-          
-          # Export env vars and restart service with these variables
+
+          echo "Exporting DB environment variables..."
+          export SERVER_PORT=$SERVER_PORT
           export DB_NAME=$DB_NAME
           export DB_USERNAME=$DB_USERNAME
           export DB_PASSWORD=$DB_PASSWORD
-          
-          #sudo systemctl stop my-api-service || true
-          java -jar build/libs/*.jar
-          #sudo systemctl start my-api-service
+
+          echo "Running API in background..."
+          nohup java -Dserver.port=$SERVER_PORT \
+                     -Dspring.datasource.url=jdbc:mysql://<your-db-host>:3306/$DB_NAME \
+                     -Dspring.datasource.username=$DB_USERNAME \
+                     -Dspring.datasource.password=$DB_PASSWORD \
+                     -jar /opt/transport-api/transport-api.jar > api.log 2>&1 &
+
+          echo "API started. PID: $(pgrep -f transport-api.jar)"
