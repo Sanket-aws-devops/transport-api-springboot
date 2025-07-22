@@ -28,7 +28,7 @@ jobs:
       - name:  Deploy and Run API
         run: |
           echo "Copying JAR to target directory..."
-          cp build/libs/*.jar /opt/transport-api/transport-api.jar
+          cp build/libs/*.jar /opt/transport-api/*.jar
 
           echo "Exporting environment variables..."
           export SERVER_PORT=$SERVER_PORT
