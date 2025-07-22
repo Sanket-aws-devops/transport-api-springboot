@@ -36,8 +36,8 @@ jobs:
       - name: 🚚 Copy JAR to Deployment Directory
         run: |
           JAR_FILE=$(ls build/libs/*.jar | head -n 1)
-          echo "Deploying $JAR_FILE to /opt/transport-api/transport-api.jar"
-          cp "$JAR_FILE" /opt/transport-api/transport-api.jar
+          echo "Deploying $JAR_FILE to /opt/transport-api/"
+          cp "$JAR_FILE" /opt/transport-api
 
       - name: 🚀 Start Spring Boot API in Background
         run: |
