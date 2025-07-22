@@ -7,41 +7,48 @@ on:
 jobs:
   build-deploy:
     runs-on: self-hosted
-    environment: Dev  
+    environment: Dev
 
     env:
       SERVER_PORT: ${{ secrets.SERVER_PORT }}
-      DB_URL: ${{ secrets.DB_URL }}               
+      DB_URL: ${{ secrets.DB_URL }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     steps:
-      - name:  Checkout code
+      - name: 📦 Checkout Code
         uses: actions/checkout@v3
 
-      - name: Grant execute permission to Gradle wrapper
+      - name: 🛠️ Make gradlew Executable
         run: chmod +x ./gradlew
 
-      - name: 🛠 Build API with Gradle
+      - name: 🧱 Build API with Gradle
         run: ./gradlew clean build
 
-      - name:  Deploy and Run API
+      - name: 🧾 List Build Artifacts
+        run: ls -l build/libs
+
+      - name: 📁 Create Deployment Directory if Absent
+        run: sudo mkdir -p /opt/transport-api
+
+      - name: 🚚 Copy JAR to Deployment Directory
         run: |
-          echo "Copying JAR to target directory..."
-          cp build/libs/*.jar /opt/transport-api/*.jar
+          JAR_FILE=$(ls build/libs/*.jar | head -n 1)
+          echo "Copying $JAR_FILE to /opt/transport-api/transport-api.jar"
+          sudo cp "$JAR_FILE" /opt/transport-api/transport-api.jar
 
-          echo "Exporting environment variables..."
-          export SERVER_PORT=$SERVER_PORT
-          export DB_URL=$DB_URL
-          export DB_USERNAME=$DB_USERNAME
-          export DB_PASSWORD=$DB_PASSWORD
+      - name: 🚀 Start Spring Boot API in Background
+        run: |
+          echo "Starting application with the following env config:"
+          echo "PORT: $SERVER_PORT"
+          echo "DB_URL: $DB_URL"
+          echo "USERNAME: $DB_USERNAME"
 
-          echo "Starting API with environment-specific configs..."
           nohup java \
-            -Dserver.port=$SERVER_PORT \
-            -Dspring.datasource.url=$DB_URL \
-            -Dspring.datasource.username=$DB_USERNAME \
-            -Dspring.datasource.password=$DB_PASSWORD \
-            -jar /opt/transport-api/*.jar > /opt/transport-api/api.log 2>&1 &
-
-          echo " API started in the background"
+            -Dserver.port=${SERVER_PORT} \
+            -Dspring.datasource.url=${DB_URL} \
+            -Dspring.datasource.username=${DB_USERNAME} \
+            -Dspring.datasource.password=${DB_PASSWORD} \
+            -jar /opt/transport-api/transport-api.jar > /opt/transport-api/app.log 2>&1 &
+          
+          echo "✅ App started. You can check logs with: tail -f /opt/transport-api/app.log"
