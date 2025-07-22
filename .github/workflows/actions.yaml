@@ -42,6 +42,6 @@ jobs:
             -Dspring.datasource.url=$DB_URL \
             -Dspring.datasource.username=$DB_USERNAME \
             -Dspring.datasource.password=$DB_PASSWORD \
-            -jar /opt/transport-api/transport-api.jar > /opt/transport-api/api.log 2>&1 &
+            -jar /opt/transport-api/*.jar > /opt/transport-api/api.log 2>&1 &
 
           echo " API started in the background"
