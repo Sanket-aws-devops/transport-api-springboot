@@ -7,7 +7,7 @@ on:
 jobs:
   build-deploy:
     runs-on: self-hosted
-    environment: dev
+    environment: Dev
 
     env:
       SERVER_PORT: ${{ secrets.SERVER_PORT }}
