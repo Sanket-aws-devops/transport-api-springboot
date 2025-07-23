@@ -19,14 +19,14 @@ jobs:
       - name: 📦 Checkout Repository
         uses: actions/checkout@v3
 
-      - name: 📄 Display pwd
+      - name: 📄 Display working directory contents
         run: ls -lh
 
       - name: ✅ Make gradlew Executable
         run: chmod +x ./gradlew
 
-      - name: 🛠️ Build JAR with Gradle
-        run: ./gradlew clean bootjar
+      - name: 🛠️ Build JAR with Gradle (bootJar)
+        run: ./gradlew clean bootJar
 
       - name: 📄 Display Built JAR Files
         run: ls -lh build/libs
@@ -36,13 +36,13 @@ jobs:
           sudo mkdir -p /opt/transport-api
           sudo chown -R $USER:$USER /opt/transport-api
 
-      - name: 🚚 Copy JAR to Deployment Directory
+      - name: 🚚 Copy Boot JAR to Deployment Directory as fixed name
         run: |
-          JAR_FILE=$(ls build/libs/*.jar | head -n 1)
-          echo "Deploying $JAR_FILE to /opt/transport-api/"
-          cp "$JAR_FILE" /opt/transport-api
+          JAR_FILE=$(ls -S build/libs/*.jar | head -n 1)
+          echo "Deploying $JAR_FILE to /opt/transport-api/transport-api.jar"
+          cp "$JAR_FILE" /opt/transport-api/transport-api.jar
 
-      - name: 🚀 Start Spring Boot API in Background
+      - name: 🚀 Start Spring Boot API in Background (with nohup)
         run: |
           echo "Starting Spring Boot application with the following config:"
           echo "PORT: $SERVER_PORT"
@@ -52,27 +52,26 @@ jobs:
           JAR_PATH="/opt/transport-api/transport-api.jar"
           LOG_FILE="/opt/transport-api/app.log"
 
-          # 🔎 Check if JAR exists
+          # Check if JAR exists
           if [ ! -f "$JAR_PATH" ]; then
             echo "❌ JAR file not found: $JAR_PATH"
             exit 1
           fi
 
-          # 🛑 Kill previously running instance (if any)
+          # Kill previously running instance if any
           EXISTING_PID=$(pgrep -f "$JAR_PATH" || true)
           if [ -n "$EXISTING_PID" ]; then
             echo "⚠️ Found existing process (PID: $EXISTING_PID). Killing..."
             sudo kill -9 $EXISTING_PID || true
           fi
 
-          # 🟢 Start application via nohup
-          echo "▶️ Launching application..."
+          # Run the application in the background with nohup and disown
           nohup java \
             -Dserver.port=$SERVER_PORT \
             -Dspring.datasource.url="$DB_URL" \
             -Dspring.datasource.username="$DB_USERNAME" \
             -Dspring.datasource.password="$DB_PASSWORD" \
-            -jar "$JAR_PATH" > "$LOG_FILE" 2>&1 &
+            -jar "$JAR_PATH" > "$LOG_FILE" 2>&1 < /dev/null & disown
 
           echo "✅ Application started. To tail logs, SSH into EC2 and run:"
           echo "sudo tail -f $LOG_FILE"
