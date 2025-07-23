@@ -44,40 +44,32 @@ jobs:
 
       - name: 🚀 Start Spring Boot API in Background (with nohup)
         run: |
-          echo "Starting Spring Boot application with the following config:"
-          echo "PORT: $SERVER_PORT"
-          echo "DB_URL: $DB_URL"
-          echo "USERNAME: $DB_USERNAME"
-
-          echo "🔍 Environment Debug:"
-          printenv | grep -E 'DB_|SERVER_PORT'
-
-          echo "DB_URL: $DB_URL"
-          printenv | grep DB_URL
+          echo "Starting Spring Boot application with resolved GitHub secrets:"
+          echo "▶️ PORT: ${{ secrets.SERVER_PORT }}"
+          echo "▶️ DB_URL: [MASKED]"
+          echo "▶️ DB_USERNAME: ${{ secrets.DB_USERNAME }}"
 
           JAR_PATH="/opt/transport-api/transport-api.jar"
           LOG_FILE="/opt/transport-api/app.log"
 
-          # Check if JAR exists
           if [ ! -f "$JAR_PATH" ]; then
             echo "❌ JAR file not found: $JAR_PATH"
             exit 1
           fi
 
-          # Kill previously running instance if any
           EXISTING_PID=$(pgrep -f "$JAR_PATH" || true)
           if [ -n "$EXISTING_PID" ]; then
             echo "⚠️ Found existing process (PID: $EXISTING_PID). Killing..."
             sudo kill -9 $EXISTING_PID || true
           fi
 
-          # Run the application in the background with nohup and disown
+          # ✅ Pass secrets as Java flags using GitHub expressions
           nohup java \
-            -Dserver.port=$SERVER_PORT \
-            -Dspring.datasource.url="$DB_URL" \
-            -Dspring.datasource.username="$DB_USERNAME" \
-            -Dspring.datasource.password="$DB_PASSWORD" \
+            -Dserver.port=${{ secrets.SERVER_PORT }} \
+            -Dspring.datasource.url="${{ secrets.DB_URL }}" \
+            -Dspring.datasource.username="${{ secrets.DB_USERNAME }}" \
+            -Dspring.datasource.password="${{ secrets.DB_PASSWORD }}" \
             -jar "$JAR_PATH" > "$LOG_FILE" 2>&1 < /dev/null & disown
 
-          echo "✅ Application started. To tail logs, SSH into EC2 and run:"
+          echo "✅ Application started. To tail logs:"
           echo "sudo tail -f $LOG_FILE"
