@@ -49,6 +49,12 @@ jobs:
           echo "DB_URL: $DB_URL"
           echo "USERNAME: $DB_USERNAME"
 
+          echo "🔍 Environment Debug:"
+          printenv | grep -E 'DB_|SERVER_PORT'
+
+          echo "DB_URL: $DB_URL"
+          printenv | grep DB_URL
+
           JAR_PATH="/opt/transport-api/transport-api.jar"
           LOG_FILE="/opt/transport-api/app.log"
 
