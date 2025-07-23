@@ -65,7 +65,7 @@ jobs:
 
           # ✅ Pass secrets as Java flags using GitHub expressions
           nohup java \
-            -Dserver.port=8080 #${{ secrets.SERVER_PORT }} \
+            -Dserver.port=8080  \
             -Dspring.datasource.url="jdbc:mysql://54.226.148.124:3306/transport?createDatabaseIfNotExist=true" \
             -Dspring.datasource.username="admin" \
             -Dspring.datasource.password="admin@123" \
