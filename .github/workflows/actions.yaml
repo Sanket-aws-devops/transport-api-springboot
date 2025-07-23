@@ -9,7 +9,7 @@ jobs:
     runs-on: self-hosted
     environment: Dev
 
-    env:
+    #env:
       #SERVER_PORT: ${{ secrets.SERVER_PORT }}
       #DB_URL: ${{ secrets.DB_URL }}
       #DB_USERNAME: ${{ secrets.DB_USERNAME }}
