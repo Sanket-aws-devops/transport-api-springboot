@@ -19,7 +19,8 @@ public class FlywayRunner {
 	@FlywayDataSource
 	public DataSource flywayDataSource() {
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-		dataSource.setUrl(dataSourceProps.getUrl() + "?createDatabaseIfNotExist=true");
+		// dataSource.setUrl(dataSourceProps.getUrl() + "?createDatabaseIfNotExist=true");
+		dataSource.setUrl(dataSourceProps.getUrl());
 		dataSource.setUsername(dataSourceProps.getUsername());
 		dataSource.setPassword(dataSourceProps.getPassword());
 		dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
