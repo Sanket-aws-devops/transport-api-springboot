@@ -10,10 +10,10 @@ jobs:
     environment: Dev
 
     env:
-      SERVER_PORT: ${{ secrets.SERVER_PORT }}
+      #SERVER_PORT: ${{ secrets.SERVER_PORT }}
       #DB_URL: ${{ secrets.DB_URL }}
-      DB_USERNAME: ${{ secrets.DB_USERNAME }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      #DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      #DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     steps:
       - name: 📦 Checkout Repository
@@ -65,10 +65,10 @@ jobs:
 
           # ✅ Pass secrets as Java flags using GitHub expressions
           nohup java \
-            -Dserver.port=${{ secrets.SERVER_PORT }} \
+            -Dserver.port=8080 #${{ secrets.SERVER_PORT }} \
             -Dspring.datasource.url="jdbc:mysql://54.226.148.124:3306/transport?createDatabaseIfNotExist=true" \
-            -Dspring.datasource.username="${{ secrets.DB_USERNAME }}" \
-            -Dspring.datasource.password="${{ secrets.DB_PASSWORD }}" \
+            -Dspring.datasource.username="admin" \
+            -Dspring.datasource.password="admin@123" \
             -jar "$JAR_PATH" > "$LOG_FILE" 2>&1 < /dev/null & disown
 
           echo "✅ Application started. To tail logs:"
