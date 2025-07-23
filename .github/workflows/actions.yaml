@@ -26,7 +26,7 @@ jobs:
         run: chmod +x ./gradle
 
       - name: 🛠️ Build JAR with Gradle
-        run: gradle build
+        run: ./gradlew clean bootjar
 
       - name: 📄 Display Built JAR Files
         run: ls -lh build/libs
