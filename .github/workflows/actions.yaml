@@ -11,7 +11,7 @@ jobs:
 
     env:
       SERVER_PORT: ${{ secrets.SERVER_PORT }}
-      DB_URL: ${{ secrets.DB_URL }}
+      #DB_URL: ${{ secrets.DB_URL }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
@@ -66,7 +66,7 @@ jobs:
           # ✅ Pass secrets as Java flags using GitHub expressions
           nohup java \
             -Dserver.port=${{ secrets.SERVER_PORT }} \
-            -Dspring.datasource.url="${{ secrets.DB_URL }}" \
+            -Dspring.datasource.url="jdbc:mysql://54.226.148.124:3306/transport?createDatabaseIfNotExist=true" \
             -Dspring.datasource.username="${{ secrets.DB_USERNAME }}" \
             -Dspring.datasource.password="${{ secrets.DB_PASSWORD }}" \
             -jar "$JAR_PATH" > "$LOG_FILE" 2>&1 < /dev/null & disown
